@@ -9,7 +9,6 @@ class FineGrainedBank(accountsNumber: Int) : Bank {
     private val accounts: Array<Account> = Array(accountsNumber) { Account() }
 
     override fun getAmount(id: Int): Long {
-        // TODO: Make this operation thread-safe via fine-grained locking.
         val account = accounts[id]
         return criticalSection(account.lock) {
              account.amount
@@ -17,7 +16,6 @@ class FineGrainedBank(accountsNumber: Int) : Bank {
     }
 
     override fun deposit(id: Int, amount: Long): Long {
-        // TODO: Make this operation thread-safe via fine-grained locking.
         require(amount > 0) { "Invalid amount: $amount" }
         val account = accounts[id]
         return criticalSection(account.lock) {
@@ -28,7 +26,6 @@ class FineGrainedBank(accountsNumber: Int) : Bank {
     }
 
     override fun withdraw(id: Int, amount: Long): Long {
-        // TODO: Make this operation thread-safe via fine-grained locking.
         require(amount > 0) { "Invalid amount: $amount" }
         val account = accounts[id]
         return criticalSection(account.lock) {
@@ -39,7 +36,6 @@ class FineGrainedBank(accountsNumber: Int) : Bank {
     }
 
     override fun transfer(fromId: Int, toId: Int, amount: Long) {
-        // TODO: Make this operation thread-safe via fine-grained locking.
         require(amount > 0) { "Invalid amount: $amount" }
         require(fromId != toId) { "fromId == toId" }
         val firstId = minOf(fromId, toId)
@@ -80,9 +76,6 @@ class FineGrainedBank(accountsNumber: Int) : Bank {
          */
         var amount: Long = 0
 
-        /**
-         * TODO: use this mutex to protect the account data.
-         */
         val lock = ReentrantLock()
     }
 }

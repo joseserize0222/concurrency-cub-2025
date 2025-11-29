@@ -8,18 +8,15 @@ import java.util.concurrent.locks.*
 class CoarseGrainedBank(accountsNumber: Int) : Bank {
     private val accounts: Array<Account> = Array(accountsNumber) { Account() }
 
-    // TODO: use this mutex to protect all bank operations.
     private val globalLock = ReentrantLock()
 
     override fun getAmount(id: Int): Long {
-        // TODO: Make this operation thread-safe via coarse-grained locking.
         return criticalSection(globalLock) {
             accounts[id].amount
         }
     }
 
     override fun deposit(id: Int, amount: Long): Long {
-        // TODO: Make this operation thread-safe via coarse-grained locking.
         return criticalSection(globalLock) {
             require(amount > 0) { "Invalid amount: $amount" }
             val account = accounts[id]
@@ -30,7 +27,6 @@ class CoarseGrainedBank(accountsNumber: Int) : Bank {
     }
 
     override fun withdraw(id: Int, amount: Long): Long {
-        // TODO: Make this operation thread-safe via coarse-grained locking.
         return criticalSection(globalLock) {
             require(amount > 0) { "Invalid amount: $amount" }
             val account = accounts[id]
@@ -41,7 +37,6 @@ class CoarseGrainedBank(accountsNumber: Int) : Bank {
     }
 
     override fun transfer(fromId: Int, toId: Int, amount: Long) {
-        // TODO: Make this operation thread-safe via coarse-grained locking.
         criticalSection(globalLock) {
             require(amount > 0) { "Invalid amount: $amount" }
             require(fromId != toId) { "fromIndex == toIndex" }
