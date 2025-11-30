@@ -7,8 +7,8 @@ import kotlin.reflect.*
 abstract class TestBase(
     val sequentialSpecification: KClass<*>,
     val checkObstructionFreedom: Boolean = true,
-    val scenarios: Int = 150,
-    val threads: Int = 3,
+    val scenarios: Int = 1000,
+    val threads: Int = 10,
     val actorsBefore: Int = 1
 ) {
     @Test
