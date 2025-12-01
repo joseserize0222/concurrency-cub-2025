@@ -15,18 +15,34 @@ class MSQueueWithConstantTimeRemove<E> : QueueWithRemove<E> {
     }
 
     override fun enqueue(element: E) {
-        // TODO: When adding a new node, check whether
-        // TODO: the previous tail is logically removed.
-        // TODO: If so, remove it physically from the linked list.
-        TODO("Implement me!")
+        while (true) {
+            val currTail = tail.get()
+            val node = Node(element = element, prev = currTail)
+            if (currTail.next.compareAndSet(null, node)) {
+                tail.compareAndSet(currTail, node)
+                if (currTail.extractedOrRemoved)
+                    currTail.remove()
+                return
+            } else {
+                tail.compareAndSet(currTail, currTail.next.get())
+                if (currTail.extractedOrRemoved)
+                    currTail.remove()
+            }
+        }
     }
 
     override fun dequeue(): E? {
-        // TODO: After moving the `head` pointer forward,
-        // TODO: mark the node that contains the extracting
-        // TODO: element as "extracted or removed", restarting
-        // TODO: the operation if this node has already been removed.
-        TODO("Implement me!")
+        while (true) {
+            val currHead = head.get()
+            val currHeadNext = currHead.next.get() ?: return null
+
+            if (head.compareAndSet(currHead, currHeadNext)) {
+                currHeadNext.prev.set(null)
+                if (currHeadNext.markExtractedOrRemoved()) {
+                    return currHeadNext.element
+                }
+            }
+        }
     }
 
     override fun remove(element: E): Boolean {
@@ -103,21 +119,25 @@ class MSQueueWithConstantTimeRemove<E> : QueueWithRemove<E> {
          * removed by [remove] or extracted by [dequeue].
          */
         fun remove(): Boolean {
-            // TODO: As in the previous task, the removal procedure is split into two phases.
-            // TODO: First, you need to mark the node as "extracted or removed".
-            // TODO: On success, this node is logically removed, and the
-            // TODO: operation should return `true` at the end.
-            // TODO: In the second phase, the node should be removed
-            // TODO: physically, updating the `next` field of the previous
-            // TODO: node to `this.next.value`.
-            // TODO: In this task, you have to maintain the `prev` pointer,
-            // TODO: which references the previous node. Thus, the `remove()`
-            // TODO: complexity becomes O(1) under no contention.
-            // TODO: Do not remove physical head and tail of the linked list;
-            // TODO: it is totally fine to have a bounded number of removed nodes
-            // TODO: in the linked list, especially when it significantly simplifies
-            // TODO: the algorithm.
-            TODO("Implement me!")
+            // ---- logical removal
+            val removed = markExtractedOrRemoved()
+
+            // ---- physical removal
+            val currNext = next.get()  ?: return removed // do not remove the tail
+            val currPrev = prev.get() ?: return removed // do not remove the head
+
+            currPrev.next.compareAndSet(this, currNext)
+            currNext.prev.compareAndSet(this, currPrev)
+
+            if (currNext.extractedOrRemoved) {
+                currNext.remove()
+            }
+
+            if (currPrev.extractedOrRemoved) {
+                currPrev.remove()
+            }
+
+            return removed
         }
     }
 }
